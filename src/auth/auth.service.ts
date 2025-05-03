@@ -88,7 +88,7 @@ export class AuthService {
       },
     });
 
-    const { password, role, ...data } = newUser;
+    const { password, ...data } = newUser;
 
     return {
       status: HttpStatus.CREATED,

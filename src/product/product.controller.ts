@@ -20,6 +20,7 @@ import { Roles } from 'generated/prisma';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { GetProductsDto } from './dto/get-products.dto';
+import { GetAllProducts } from './product.types';
 
 @Controller('product')
 export class ProductController {
@@ -43,14 +44,18 @@ export class ProductController {
   }
 
   @Get('count')
-  public getCount() {
+  public getCount(): Promise<ApiResponse<number>> {
     return this.productService.getCount();
   }
 
-  // TODO => Find By Search Keyword
   @Get('search')
-  public search(@Query('keyword') keyword: string) {
+  public search(@Query('keyword') keyword: string): Promise<GetAllProducts> {
     return this.productService.search(keyword);
+  }
+
+  @Get('bestSellers')
+  public getBestSellers() {
+    return this.productService.getBestSellers();
   }
 
   // @Post('addMany')

@@ -114,6 +114,21 @@ export class ProductService {
     };
   }
 
+  public async getBestSellers(): Promise<GetAllProducts> {
+    const bestProducts: Product[] = await this.prisma.product.findMany({
+      orderBy: [{ sold: 'desc' }, { rating: 'desc' }],
+      take: 3,
+    });
+
+    return {
+      status: HttpStatus.OK,
+      isEmpty: bestProducts.length === 0,
+      length: bestProducts.length,
+      message: 'Best products fetched successfully',
+      data: bestProducts,
+    };
+  }
+
   public async update(
     id: string,
     updateProductDto: UpdateProductDto,

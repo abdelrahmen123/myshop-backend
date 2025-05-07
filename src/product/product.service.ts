@@ -83,6 +83,9 @@ export class ProductService {
       },
       skip: (page - 1) * limit,
       take: limit,
+      include: {
+        reviews: true,
+      },
     });
 
     return {

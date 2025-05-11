@@ -218,4 +218,13 @@ export class ProductService {
       data: products,
     };
   }
+
+  public async checkProductsExist(productIds: string[]): Promise<boolean> {
+    const productsFromDb = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true },
+    });
+
+    return productsFromDb.length === productIds.length;
+  }
 }

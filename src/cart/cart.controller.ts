@@ -30,7 +30,7 @@ export class CartController {
   }
 
   @Get('user-cart')
-  @RolesDecorator([Roles.USER, Roles.ADMIN, Roles.EMPLOYEE])
+  @RolesDecorator([Roles.USER])
   @UseGuards(JwtAuthGuard, RolesGuard)
   public findOneByUser(@Request() req: UserRequest) {
     return this.cartService.findOne(req.user.id);

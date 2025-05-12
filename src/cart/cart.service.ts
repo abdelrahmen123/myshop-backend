@@ -8,7 +8,6 @@ import { AddItemToCartDto } from './dto/add-item-to-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Cart, CartItem } from '@prisma/client';
-import { ApiResponse } from 'src/types/global.types';
 import { CartItemService } from './providers/cartItem.service';
 import { ProductService } from 'src/product/product.service';
 import { UpdateCartType } from './cart.types';
@@ -22,8 +21,16 @@ export class CartService {
     private readonly productService: ProductService,
   ) {}
 
-  public async findAll(): Promise<ApiResponse<Cart[]>> {
-    const carts: Cart[] = await this.prisma.cart.findMany();
+  public async findAll() {
+    const carts = await this.prisma.cart.findMany({
+      include: {
+        cartItems: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
     return {
       status: HttpStatus.OK,
       message: 'Carts fetched successfully',
@@ -31,10 +38,16 @@ export class CartService {
     };
   }
 
-  public async findOne(userId: string): Promise<ApiResponse<Cart>> {
-    const cart: Cart | null = await this.prisma.cart.findUnique({
+  public async findOne(userId: string) {
+    const cart = await this.prisma.cart.findUnique({
       where: { userId },
-      include: { cartItems: true },
+      include: {
+        cartItems: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
 
     if (!cart) {
@@ -49,17 +62,18 @@ export class CartService {
   }
 
   public async addItemToCart(
-    products: AddItemToCartDto,
+    addItemToCartDto: AddItemToCartDto,
     userId: string,
-  ): Promise<ApiResponse<ApiResponse<Cart>>> {
+  ) {
     // check if products exist
 
-    const productIds: string[] = products.items.map((item) => item.productId);
+    const productsExist = await this.prisma.product.findUnique({
+      where: { id: addItemToCartDto.productId },
+      select: { id: true },
+    });
 
-    const productsExist =
-      await this.productService.checkProductsExist(productIds);
     if (!productsExist) {
-      throw new NotFoundException('One or more products not found');
+      throw new NotFoundException('Product not found');
     }
 
     // get or create cart
@@ -70,7 +84,22 @@ export class CartService {
       include: { cartItems: true },
     });
 
-    await this.cartItemService.updateCartItems(cart.id, products.items);
+    const existingCartItem = cart.cartItems.find(
+      (item) => item.productId === addItemToCartDto.productId,
+    );
+
+    if (existingCartItem) {
+      await this.cartItemService.increaseCartItemsQuantity(
+        existingCartItem,
+        addItemToCartDto.quantity,
+      );
+    } else {
+      await this.cartItemService.createCartItem(
+        cart.id,
+        addItemToCartDto.productId,
+        addItemToCartDto.quantity,
+      );
+    }
 
     const updatedCart = await this.findOne(userId);
 

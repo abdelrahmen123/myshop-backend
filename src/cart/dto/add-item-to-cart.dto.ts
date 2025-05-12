@@ -1,14 +1,6 @@
-import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsNotEmpty,
-  IsNumber,
-  IsPositive,
-  IsUUID,
-  ValidateNested,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsPositive, IsUUID } from 'class-validator';
 
-class CartItem {
+export class AddItemToCartDto {
   @IsNotEmpty()
   @IsUUID('4', { message: 'Product id is not valid', each: true })
   productId: string;
@@ -17,12 +9,4 @@ class CartItem {
   @IsNumber({}, { each: true })
   @IsPositive({ each: true })
   quantity: number;
-}
-
-export class AddItemToCartDto {
-  @IsNotEmpty()
-  @IsArray()
-  @ValidateNested({ each: true }) // يقوم بالتحقق من عناصر المصفوفة
-  @Type(() => CartItem)
-  items: CartItem[];
 }

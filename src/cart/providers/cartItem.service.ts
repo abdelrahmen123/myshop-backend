@@ -4,25 +4,36 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AddItemToCartDto } from '../dto/add-item-to-cart.dto';
 import { CartItem } from '@prisma/client';
 
 @Injectable()
 export class CartItemService {
   constructor(private readonly prisma: PrismaService) {}
 
-  public async updateCartItems(
+  public async createCartItem(
     cartId: string,
-    items: AddItemToCartDto['items'],
-  ): Promise<void> {
-    const operations = items.map((item) =>
-      this.prisma.cartItem.upsert({
-        where: { productId: item.productId },
-        update: { quantity: { increment: item.quantity } },
-        create: { cartId, productId: item.productId, quantity: item.quantity },
-      }),
-    );
-    await this.prisma.$transaction(operations);
+    productId: string,
+    quantity: number,
+  ) {
+    const cartItem = await this.prisma.cartItem.create({
+      data: {
+        cartId,
+        productId,
+        quantity,
+      },
+    });
+
+    return cartItem;
+  }
+
+  public async increaseCartItemsQuantity(
+    existingCartItem: CartItem,
+    quantity: number,
+  ) {
+    return await this.prisma.cartItem.update({
+      where: { id: existingCartItem.id },
+      data: { quantity: existingCartItem.quantity + quantity },
+    });
   }
 
   public async decreaseCartItemsQuantity(

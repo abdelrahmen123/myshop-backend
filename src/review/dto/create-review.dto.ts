@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateReviewDto {
@@ -8,5 +9,6 @@ export class CreateReviewDto {
   @MaxLength(200, {
     message: 'Text must be at most 200 characters long',
   })
+  @ApiProperty()
   text: string;
 }

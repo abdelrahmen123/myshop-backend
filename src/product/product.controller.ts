@@ -13,14 +13,14 @@ import {
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ApiResponse } from 'src/types/global.types';
-import { Product } from '@prisma/client';
-import { RolesDecorator } from 'src/auth/decorators/roles.decorator';
-import { Roles } from 'generated/prisma';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { ApiResponse } from '../types/global.types';
+import { Product, Roles } from '@prisma/client';
+import { RolesDecorator } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { GetProductsDto } from './dto/get-products.dto';
 import { GetAllProducts } from './product.types';
+import { ApiQuery, ApiOperation, ApiSecurity } from '@nestjs/swagger';
 
 @Controller('product')
 export class ProductController {
@@ -37,6 +37,8 @@ export class ProductController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all products' })
+  @ApiQuery({ name: 'query', type: GetProductsDto, required: false })
   public findAll(
     @Query() query: GetProductsDto,
   ): Promise<ApiResponse<Product[]>> {
@@ -54,7 +56,7 @@ export class ProductController {
   }
 
   @Get('bestSellers')
-  public getBestSellers() {
+  public getBestSellers(): Promise<GetAllProducts> {
     return this.productService.getBestSellers();
   }
 
@@ -78,6 +80,7 @@ export class ProductController {
   @Patch(':id')
   @RolesDecorator([Roles.ADMIN])
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiSecurity('bearer')
   public update(
     @Param('id') id: string,
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))

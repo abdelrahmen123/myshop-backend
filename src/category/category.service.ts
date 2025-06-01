@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Category } from '@prisma/client';
-import { ApiResponse } from 'src/types/global.types';
+import { ApiResponse } from '../types/global.types';
 
 @Injectable()
 export class CategoryService {
@@ -107,6 +107,7 @@ export class CategoryService {
     return {
       status: HttpStatus.OK,
       message: 'Category deleted successfully',
+      data: undefined,
     };
   }
 }

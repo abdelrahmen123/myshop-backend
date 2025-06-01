@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { CartItem } from '@prisma/client';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class CartItemService {
     cartId: string,
     productId: string,
     quantity: number,
-  ) {
+  ): Promise<CartItem> {
     const cartItem = await this.prisma.cartItem.create({
       data: {
         cartId,
@@ -29,7 +29,7 @@ export class CartItemService {
   public async increaseCartItemsQuantity(
     existingCartItem: CartItem,
     quantity: number,
-  ) {
+  ): Promise<CartItem> {
     return await this.prisma.cartItem.update({
       where: { id: existingCartItem.id },
       data: { quantity: existingCartItem.quantity + quantity },

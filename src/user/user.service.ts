@@ -1,12 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
-import { ApiResponse } from 'src/types/global.types';
-import { SafeUserType } from 'src/auth/types/auth.types';
+import { ApiResponse } from '../types/global.types';
+import { SafeUserType } from '../auth/types/auth.types';
+import path from 'node:path';
+import fs from 'node:fs';
 
 @Injectable()
 export class UserService {
@@ -20,11 +25,9 @@ export class UserService {
         email: createUserDto.email,
       },
     });
+
     if (user) {
-      return {
-        status: HttpStatus.BAD_REQUEST,
-        message: 'user already exists',
-      };
+      throw new BadRequestException('user already exists');
     }
 
     return {
@@ -36,7 +39,6 @@ export class UserService {
           email: createUserDto.email,
           password: createUserDto.password,
           role: createUserDto.role,
-          image: createUserDto.image || '',
           phone: createUserDto.phone || '',
           address: createUserDto.address || '',
         },
@@ -60,12 +62,10 @@ export class UserService {
     });
 
     if (!user) {
-      return {
-        status: HttpStatus.NOT_FOUND,
-        message: 'user not found',
-      };
+      throw new NotFoundException('user not found');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...data } = user;
 
     return {
@@ -75,7 +75,10 @@ export class UserService {
     };
   }
 
-  public async update(id: string, updateUserDto: UpdateUserDto) {
+  public async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<ApiResponse<SafeUserType>> {
     const updatedData: Record<string, string> = {};
 
     const allowedFields = [
@@ -89,15 +92,13 @@ export class UserService {
 
     for (const key of allowedFields) {
       if (updateUserDto[key]) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         updatedData[key] = updateUserDto[key];
       }
     }
 
     if (Object.keys(updatedData).length === 0) {
-      return {
-        status: HttpStatus.BAD_REQUEST,
-        message: 'no fields to update',
-      };
+      throw new BadRequestException('No fields to update');
     }
 
     const user: User | null = await this.prisma.user.findUnique({
@@ -107,10 +108,29 @@ export class UserService {
     });
 
     if (!user) {
-      return {
-        status: HttpStatus.NOT_FOUND,
-        message: 'user not found',
-      };
+      throw new NotFoundException('user not found');
+    }
+
+    if (updateUserDto.image && user.image) {
+      const oldImagePath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'uploads/users',
+        path.basename(user.image),
+      );
+
+      try {
+        // تحقق من وجود الصورة القديمة باستخدام fs.promises
+        await fs.promises.access(oldImagePath, fs.constants.F_OK);
+
+        // حذف الصورة القديمة
+        await fs.promises.unlink(oldImagePath);
+        console.log('Old image deleted successfully');
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (err) {
+        console.log('Old image does not exist, skipping deletion');
+      }
     }
 
     const newUser = await this.prisma.user.update({
@@ -122,6 +142,7 @@ export class UserService {
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...data } = newUser;
 
     return {
@@ -139,10 +160,7 @@ export class UserService {
     });
 
     if (!user) {
-      return {
-        status: HttpStatus.NOT_FOUND,
-        message: 'user not found',
-      };
+      throw new NotFoundException('user not found');
     }
 
     await this.prisma.user.delete({
@@ -154,6 +172,7 @@ export class UserService {
     return {
       status: HttpStatus.OK,
       message: 'user deleted successfully',
+      data: undefined,
     };
   }
 }

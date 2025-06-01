@@ -12,11 +12,12 @@ import {
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { UserRequest } from 'src/user/user.types';
-import { RolesDecorator } from 'src/auth/decorators/roles.decorator';
-import { Roles } from '@prisma/client';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { UserRequest } from '../user/user.types';
+import { RolesDecorator } from '../auth/decorators/roles.decorator';
+import { Review, Roles } from '@prisma/client';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ApiResponse } from '../types/global.types';
 
 @Controller('review')
 export class ReviewController {
@@ -30,12 +31,12 @@ export class ReviewController {
     createReviewDto: CreateReviewDto,
     @Param('productId') productId: string,
     @Request() req: UserRequest,
-  ) {
+  ): Promise<ApiResponse<Review>> {
     return this.reviewService.create(createReviewDto, productId, req.user);
   }
 
   @Get(':id')
-  public findOne(@Param('id') id: string) {
+  public findOne(@Param('id') id: string): Promise<ApiResponse<Review>> {
     return this.reviewService.findOne(id);
   }
 
@@ -47,14 +48,17 @@ export class ReviewController {
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     updateReviewDto: CreateReviewDto,
     @Request() req: UserRequest,
-  ) {
+  ): Promise<ApiResponse<Review>> {
     return this.reviewService.update(id, updateReviewDto, req.user);
   }
 
   @Delete(':id')
   @RolesDecorator([Roles.USER, Roles.ADMIN])
   @UseGuards(JwtAuthGuard, RolesGuard)
-  public remove(@Param('id') id: string, @Request() req: UserRequest) {
+  public remove(
+    @Param('id') id: string,
+    @Request() req: UserRequest,
+  ): Promise<ApiResponse<void>> {
     return this.reviewService.remove(id, req.user);
   }
 }

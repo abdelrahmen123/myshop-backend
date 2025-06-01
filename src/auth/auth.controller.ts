@@ -12,6 +12,8 @@ import { AuthApiResponse } from './types/auth.types';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { ApiResponse } from 'src/types/global.types';
 import { UserRequest } from 'src/user/user.types';
+import { ApiBody } from '@nestjs/swagger';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -19,6 +21,9 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
+  @ApiBody({
+    type: LoginDto,
+  })
   public login(@Request() req: UserRequest): Promise<
     ApiResponse<{
       accessToken: string;

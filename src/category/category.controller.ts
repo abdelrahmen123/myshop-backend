@@ -12,11 +12,11 @@ import {
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { RolesDecorator } from 'src/auth/decorators/roles.decorator';
+import { RolesDecorator } from '../auth/decorators/roles.decorator';
 import { Category, Roles } from '@prisma/client';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { ApiResponse } from 'src/types/global.types';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { ApiResponse } from '../types/global.types';
 
 @Controller('category')
 export class CategoryController {

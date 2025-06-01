@@ -5,10 +5,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { SafeUserType } from 'src/auth/types/auth.types';
+import { PrismaService } from '../prisma/prisma.service';
+import { SafeUserType } from '../auth/types/auth.types';
 import { Review } from '@prisma/client';
-import { ApiResponse } from 'src/types/global.types';
+import { ApiResponse } from '../types/global.types';
 
 @Injectable()
 export class ReviewService {
@@ -18,7 +18,7 @@ export class ReviewService {
     createReviewDto: CreateReviewDto,
     productId: string,
     user: SafeUserType,
-  ) {
+  ): Promise<ApiResponse<Review>> {
     const newReview: Review = await this.prisma.review.create({
       data: {
         text: createReviewDto.text,
@@ -108,6 +108,7 @@ export class ReviewService {
     return {
       status: HttpStatus.OK,
       message: 'Review deleted successfully',
+      data: undefined,
     };
   }
 }

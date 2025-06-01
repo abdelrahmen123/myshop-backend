@@ -1,9 +1,9 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ApiResponse } from 'src/types/global.types';
+import { ApiResponse } from '../types/global.types';
 import { Product } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { GetProductsDto } from './dto/get-products.dto';
 import { FiltrationObject, GetAllProducts } from './product.types';
 
@@ -35,6 +35,7 @@ export class ProductService {
         data: newProduct,
       };
     }
+
     const newProduct: Product = await this.prisma.product.create({
       data: {
         ...createProductDto,
@@ -121,6 +122,9 @@ export class ProductService {
     const bestProducts: Product[] = await this.prisma.product.findMany({
       orderBy: [{ sold: 'desc' }, { rating: 'desc' }],
       take: 3,
+      include: {
+        reviews: true,
+      },
     });
 
     return {
@@ -177,6 +181,7 @@ export class ProductService {
     return {
       status: HttpStatus.OK,
       message: 'Product deleted successfully',
+      data: undefined,
     };
   }
 
@@ -217,14 +222,5 @@ export class ProductService {
       message: 'Products fetched successfully',
       data: products,
     };
-  }
-
-  public async checkProductsExist(productIds: string[]): Promise<boolean> {
-    const productsFromDb = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
-      select: { id: true },
-    });
-
-    return productsFromDb.length === productIds.length;
   }
 }

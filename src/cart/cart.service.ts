@@ -6,23 +6,27 @@ import {
 } from '@nestjs/common';
 import { AddItemToCartDto } from './dto/add-item-to-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Cart, CartItem } from '@prisma/client';
 import { CartItemService } from './providers/cartItem.service';
-import { ProductService } from 'src/product/product.service';
-import { UpdateCartType } from './cart.types';
-import { SafeUserType } from 'src/auth/types/auth.types';
+import {
+  CartWithItems,
+  CartWithUserAndItems,
+  GetCartResponse,
+  UpdateCartType,
+} from './cart.types';
+import { SafeUserType } from '../auth/types/auth.types';
+import { ApiResponse } from '../types/global.types';
 
 @Injectable()
 export class CartService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cartItemService: CartItemService,
-    private readonly productService: ProductService,
   ) {}
 
-  public async findAll() {
-    const carts = await this.prisma.cart.findMany({
+  public async findAll(): Promise<ApiResponse<CartWithItems[]>> {
+    const carts: CartWithItems[] = await this.prisma.cart.findMany({
       include: {
         cartItems: {
           include: {
@@ -31,6 +35,7 @@ export class CartService {
         },
       },
     });
+
     return {
       status: HttpStatus.OK,
       message: 'Carts fetched successfully',
@@ -38,25 +43,34 @@ export class CartService {
     };
   }
 
-  public async findOne(userId: string) {
-    const cart = await this.prisma.cart.findUnique({
-      where: { userId },
-      include: {
-        cartItems: {
-          include: {
-            product: true,
+  public async findOne(userId: string): Promise<GetCartResponse> {
+    const cart: CartWithUserAndItems | null = await this.prisma.cart.findUnique(
+      {
+        where: { userId },
+        include: {
+          cartItems: {
+            include: {
+              product: true,
+            },
           },
+          user: true,
         },
       },
-    });
+    );
 
     if (!cart) {
       throw new NotFoundException('Cart not found');
     }
 
+    const totalPrice = cart.cartItems.reduce(
+      (total, item) => total + item.quantity * item.product.price,
+      0,
+    );
+
     return {
       status: HttpStatus.OK,
       message: 'Cart fetched successfully',
+      totalPrice,
       data: cart,
     };
   }
@@ -64,7 +78,7 @@ export class CartService {
   public async addItemToCart(
     addItemToCartDto: AddItemToCartDto,
     userId: string,
-  ) {
+  ): Promise<ApiResponse<GetCartResponse>> {
     // check if products exist
 
     const productsExist = await this.prisma.product.findUnique({
@@ -83,7 +97,6 @@ export class CartService {
       create: { userId },
       include: { cartItems: true },
     });
-
     const existingCartItem = cart.cartItems.find(
       (item) => item.productId === addItemToCartDto.productId,
     );
@@ -101,7 +114,7 @@ export class CartService {
       );
     }
 
-    const updatedCart = await this.findOne(userId);
+    const updatedCart: GetCartResponse = await this.findOne(userId);
 
     return {
       status: HttpStatus.OK,
@@ -114,7 +127,7 @@ export class CartService {
     id: string,
     updateCartDto: UpdateCartDto,
     user: SafeUserType,
-  ) {
+  ): Promise<ApiResponse<GetCartResponse>> {
     const cart: (Cart & { cartItems: CartItem[] }) | null =
       await this.prisma.cart.findUnique({
         where: { userId: user.id },

@@ -1,15 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcryptjs';
-import { saltOrRounds } from 'src/constants/hashing';
-import { AuthApiResponse } from './types/auth.types';
+import { saltOrRounds } from '../constants/hashing';
+import { AuthApiResponse, SafeUserType } from './types/auth.types';
 import { JwtService } from '@nestjs/jwt';
-import { ApiResponse } from 'src/types/global.types';
+import { ApiResponse } from '../types/global.types';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +17,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  public async validate(email: string, password: string) {
+  public async validate(
+    email: string,
+    password: string,
+  ): Promise<SafeUserType | null> {
     const user: User | null = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -36,7 +38,9 @@ export class AuthService {
     return null;
   }
 
-  public async login(user: any): Promise<ApiResponse<{ accessToken: string }>> {
+  public async login(
+    user: SafeUserType,
+  ): Promise<ApiResponse<{ accessToken: string }>> {
     return {
       status: HttpStatus.OK,
       message: 'user logged in successfully',
@@ -65,10 +69,7 @@ export class AuthService {
     });
 
     if (user) {
-      return {
-        status: HttpStatus.BAD_REQUEST,
-        message: 'user already exists',
-      };
+      throw new BadRequestException('user already exists');
     }
 
     const hashedPassword: string = await bcrypt.hash(

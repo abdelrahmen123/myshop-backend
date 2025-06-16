@@ -17,6 +17,7 @@ import { OrderModule } from './order/order.module';
     PrismaModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
     }),
     UserModule,
     AuthModule,

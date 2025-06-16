@@ -18,6 +18,7 @@ import { Review, Roles } from '@prisma/client';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiResponse } from '../types/global.types';
+import { ApiSecurity } from '@nestjs/swagger';
 
 @Controller('review')
 export class ReviewController {
@@ -26,6 +27,7 @@ export class ReviewController {
   @Post(':productId')
   @RolesDecorator([Roles.USER])
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiSecurity('bearer')
   public create(
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     createReviewDto: CreateReviewDto,
@@ -43,6 +45,7 @@ export class ReviewController {
   @Patch(':id')
   @RolesDecorator([Roles.USER])
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiSecurity('bearer')
   public update(
     @Param('id') id: string,
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
@@ -55,6 +58,7 @@ export class ReviewController {
   @Delete(':id')
   @RolesDecorator([Roles.USER, Roles.ADMIN])
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiSecurity('bearer')
   public remove(
     @Param('id') id: string,
     @Request() req: UserRequest,

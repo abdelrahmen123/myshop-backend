@@ -20,7 +20,12 @@ import { RolesDecorator } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRequest } from './user.types';
-import { ApiBody, ApiConsumes, ApiSecurity } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiCookieAuth,
+  ApiSecurity,
+} from '@nestjs/swagger';
 import { ApiResponse } from '../types/global.types';
 import { SafeUserType } from '../auth/types/auth.types';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -68,6 +73,7 @@ export class UserController {
   }
 }
 
+@ApiCookieAuth()
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly userService: UserService) {}

@@ -9,6 +9,7 @@ import { saltOrRounds } from '../constants/hashing';
 import { AuthApiResponse, SafeUserType } from './types/auth.types';
 import { JwtService } from '@nestjs/jwt';
 import { ApiResponse } from '../types/global.types';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -40,12 +41,30 @@ export class AuthService {
 
   public async login(
     user: SafeUserType,
+    res: Response,
   ): Promise<ApiResponse<{ accessToken: string }>> {
+    const token = this.jwtService.sign(user);
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      path: '/',
+    });
+
+    res.status(HttpStatus.OK).json({
+      message: 'user logged in successfully',
+      data: {
+        accessToken: token,
+      },
+    });
+
     return {
       status: HttpStatus.OK,
       message: 'user logged in successfully',
       data: {
-        accessToken: this.jwtService.sign(user),
+        accessToken: token,
       },
     };
   }
@@ -96,5 +115,18 @@ export class AuthService {
       message: 'user has registered successfully',
       data,
     };
+  }
+
+  public async logout(res: Response): Promise<void> {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    res.status(HttpStatus.OK).json({
+      message: 'user logged out successfully',
+    });
   }
 }

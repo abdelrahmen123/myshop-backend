@@ -5,6 +5,7 @@ import {
   UseGuards,
   ValidationPipe,
   Request,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -14,6 +15,7 @@ import { ApiResponse } from 'src/types/global.types';
 import { UserRequest } from 'src/user/user.types';
 import { ApiBody } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -24,12 +26,20 @@ export class AuthController {
   @ApiBody({
     type: LoginDto,
   })
-  public login(@Request() req: UserRequest): Promise<
+  public login(
+    @Request() req: UserRequest,
+    @Res() res: Response,
+  ): Promise<
     ApiResponse<{
       accessToken: string;
     }>
   > {
-    return this.authService.login(req.user);
+    return this.authService.login(req.user, res);
+  }
+
+  @Post('logout')
+  public logout(@Res() res: Response): Promise<void> {
+    return this.authService.logout(res);
   }
 
   @Post('register')

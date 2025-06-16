@@ -71,8 +71,8 @@ model Category {
 }
 
 model Product {
-  id              String     @id @default(uuid())
-  name            String     @unique
+  id              String      @id @default(uuid())
+  name            String      @unique
   description     String?
   price           Float
   discountPercent Float?
@@ -83,12 +83,12 @@ model Product {
   rating          Int?
   ratingAverage   Float?
   categoryId      String
-  category        Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category        Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   cartItem        CartItem?
-  orderItem       OrderItem?
+  orderItem       OrderItem[]
   reviews         Review[]
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 model Review {
@@ -123,9 +123,11 @@ model OrderItem {
   id        String   @id @default(uuid())
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String   @unique
+  productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([orderId, productId])
 }

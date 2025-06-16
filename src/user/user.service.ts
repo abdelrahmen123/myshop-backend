@@ -10,8 +10,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import { ApiResponse } from '../types/global.types';
 import { SafeUserType } from '../auth/types/auth.types';
-import path from 'node:path';
-import fs from 'node:fs';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class UserService {
@@ -111,7 +111,12 @@ export class UserService {
       throw new NotFoundException('user not found');
     }
 
-    if (updateUserDto.image && user.image) {
+    if (
+      updateUserDto.image &&
+      user.image &&
+      typeof updateUserDto.image === 'string' &&
+      typeof user.image === 'string'
+    ) {
       const oldImagePath = path.join(
         __dirname,
         '..',
@@ -121,10 +126,7 @@ export class UserService {
       );
 
       try {
-        // تحقق من وجود الصورة القديمة باستخدام fs.promises
         await fs.promises.access(oldImagePath, fs.constants.F_OK);
-
-        // حذف الصورة القديمة
         await fs.promises.unlink(oldImagePath);
         console.log('Old image deleted successfully');
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

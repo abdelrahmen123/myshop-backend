@@ -16,8 +16,8 @@ import { OrderModule } from './order/order.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/public',
     }),
     UserModule,
     AuthModule,

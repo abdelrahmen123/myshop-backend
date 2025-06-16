@@ -105,7 +105,7 @@ export class ProfileController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads/users',
+        destination: './public/users',
         filename: (req, file, cb) => {
           const prefix: string = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
           cb(null, `${prefix}-${file.originalname}`);
@@ -131,7 +131,7 @@ export class ProfileController {
     @UploadedFile() file: Express.Multer.File,
     @Request() req: UserRequest,
   ): Promise<ApiResponse<SafeUserType>> {
-    const imageUrl = `/uploads/users/${file.filename}`;
+    const imageUrl = `/public/users/${file.filename}`;
     return this.userService.update(req.user.id, { image: imageUrl });
   }
 

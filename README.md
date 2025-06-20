@@ -15,34 +15,41 @@
 
 ## 📦 التثبيت
 
+``` bash
+npm install
+yarn install
 pnpm install
-
----
-
+```
 ⚙️ الإعداد
 
 أنشئ ملف .env في جذر المشروع:
 
-DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
-JWT_SECRET="your_jwt_secret"
-PORT=3000
-UPLOAD_DIR="./uploads"
+- DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
+- JWT_SECRET="your_jwt_secret"
+- PORT=3000
 
 شغل Prisma
-
+``` bash
 npx prisma generate
 npx prisma migrate dev --name init
+yarn prisma generate
+yarn prisma migrate dev --name init
+pnpm prisma generate
+pnpm prisma migrate dev --name init
+```
 
 ---
 
 ▶️ التشغيل
-
-pnpm start:dev
-
+```
+npm run start:dev
+yarn run start:dev
+pnpm run start:dev
+```
 ---
-
 🧱 بنية المشروع
 
+``` 
 src/
 │
 ├── auth/         ← تسجيل الدخول والتسجيل (JWT + Passport)
@@ -53,7 +60,7 @@ src/
 ├── orders/       ← الطلبات
 ├── reviews/      ← تقييمات المنتجات
 └── main.ts       ← نقطة بدء التطبيق
-
+```
 ---
 
 🔐 المصادقة
